@@ -7,20 +7,22 @@ import AllRounderStats from "./AllRounderStats"
 
 
 function App() {
+  
+  
   const [pos, setPos] = useState(1)
   const [go, setGo] = useState(1)
   const [stats, setStats] = useState({})
-  const [purchase, setPurchase] = useState(null)
+  // const [purchase, setPurchase] = useState(null)
   const [selected, setSelected] = useState(null); // Fixed: removed reference to undefined purchase
   const [type, setType] = useState("batsmen")
   const [price, setPrice] = useState(1000000000); // Fixed: set default value directly
   const [teamId, setTeamId] = useState(null)
 
   useEffect(() => {
-    //axios.get(`${process.env.API_BASE}/${type}/${pos}`)
-    axios.get(`${import.meta.env.VITE_API_BASE}/${type}/${pos}`)
+    axios.get(`http://localhost:8080/${type}/${pos}`)
       .then((res) => {
-        res.data.price = 100000;
+        // res.data.price = 100000;
+        // setPrice(res.price)
         setStats(res.data)
         setPrice(res.data.price)
         console.log(res.data)
@@ -41,33 +43,44 @@ function App() {
     "all_rounders": "all_rounder"
   }
 
-  useEffect(() => {
-    if (!purchase || !purchase.playerId || !purchase.teamId) return;
+  // useEffect(() => {
+  //   if (!purchase || !purchase.playerId || !purchase.teamId) return;
 
-    axios.post(`${import.meta.env.VITE_API_BASE}/purchase`, purchase)
-      .then((res) => {
-        console.log(res)
-      })
-      .catch((err) => {
-        console.log(err.response?.data);
-      });
-  }, [purchase]);
+  //   axios.post("http://localhost:8080/purchase", purchase)
+  //     .then((res) => {
+  //       console.log(res)
+  //     })
+  //     .catch((err) => {
+  //       console.log(err.response?.data);
+  //     });
+  // }, [purchase]);
 
-  const handleSelect = (team) => {
-    console.log(team)
+  const [isPurchasing, setIsPurchasing] = useState(false);
 
-    if (team) {
-      const order = {
-        "playerId": pos,
-        "soldPrice": price,
-        "teamId": teamId,
-        "playerType": ptype[type]
-      }
-      setPurchase(order)
-    } else {
-      setPurchase(null)
-    }
+const handleSelect = (team) => {
+  if (!team || isPurchasing) return;
+
+  setIsPurchasing(true);
+  const order = {
+    "playerId": pos,
+    "soldPrice": price,
+    "teamId": team,
+    "playerType": ptype[type]
   };
+
+  axios.post("http://localhost:8080/purchase", order)
+    .then((res) => {
+      console.log("Purchase successful:", res.data);
+      setSelected(null);
+    })
+    .catch((err) => {
+      console.error("Purchase failed:", err.response?.data || err.message);
+    })
+    .finally(() => {
+      setIsPurchasing(false);
+    });
+};
+
 
   function formatToCrores(num) {
     if (typeof num !== 'number' || isNaN(num)) return '';
