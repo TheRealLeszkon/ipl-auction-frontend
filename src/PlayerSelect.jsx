@@ -75,22 +75,28 @@ const iplTeams = [
 
 export default function PlayerSelect({ onSelect, selected, setSelected, setTeamId }) {
 
+  function toggle(teamName, teamShortCode) {
+  setSelected((prev) => {
+    const next = prev === teamName ? null : teamName;
 
-  function toggle(teamName, teamId) {
-    setSelected((prev) => {
-      const next = prev === teamName ? null : teamName;
-      onSelect(next);
-      setTeamId(teamId)
-      console.log(teamId)
-
-      return next;
-    });
-  }
+    if (next === null) {
+      setTeamId(null);
+      return null;
+    } else {
+      // Call this after state updates to avoid duplicate firing
+      setTimeout(() => {
+        onSelect(teamShortCode);
+        setTeamId(teamShortCode);
+      }, 0);
+      return teamName;
+    }
+  });
+}
 
   return (
     <div className="flex-col font-semibold bg-gradient-to-br from-[#181832] to-[#212147] rounded-2xl p-15 scale-90 shadow-2xl">
-      <h1 className="text-3xl font-bold text-[#fcd814] ">ipl Teams</h1>
-      <div className="grid grid-cols-2 grid-rows-5 gap-2 ">
+      <h1 className="text-3xl font-bold text-[#fcd814] ">IPL Teams</h1>
+      <div className="grid grid-cols-2 grid-rows-5 gap-2">
         {iplTeams.map((team) => {
           const isSelected = selected === team.name;
           const isGreyedOut = selected !== null && !isSelected;
@@ -117,8 +123,6 @@ export default function PlayerSelect({ onSelect, selected, setSelected, setTeamI
           );
         })}
       </div>
-
     </div>
   );
 }
-
