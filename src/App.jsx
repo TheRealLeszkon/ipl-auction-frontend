@@ -5,6 +5,7 @@ import BatsmenStats from "./BatsmenStats.jsx"
 import BowlerStats from "./BowlerStats"
 import AllRounderStats from "./AllRounderStats"
 
+
 function App() {
   const [pos, setPos] = useState(1)
   const [go, setGo] = useState(1)
@@ -16,7 +17,8 @@ function App() {
   const [teamId, setTeamId] = useState(null)
 
   useEffect(() => {
-    axios.get(`http://localhost:8080/${type}/${pos}`)
+    //axios.get(`${process.env.API_BASE}/${type}/${pos}`)
+    axios.get(`${import.meta.env.VITE_API_BASE}/${type}/${pos}`)
       .then((res) => {
         res.data.price = 100000;
         setStats(res.data)
@@ -42,7 +44,7 @@ function App() {
   useEffect(() => {
     if (!purchase || !purchase.playerId || !purchase.teamId) return;
 
-    axios.post("http://localhost:8080/purchase", purchase)
+    axios.post(`${import.meta.env.VITE_API_BASE}/purchase`, purchase)
       .then((res) => {
         console.log(res)
       })
