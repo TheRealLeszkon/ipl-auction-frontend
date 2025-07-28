@@ -19,7 +19,7 @@ function App() {
   const [teamId, setTeamId] = useState(null)
 
   useEffect(() => {
-    axios.get(`http://localhost:8080/${type}/${pos}`)
+    axios.get(`${import.meta.env.VITE_API_BASE}/${type}/${pos}`)
       .then((res) => {
         // res.data.price = 100000;
         // setPrice(res.price)
@@ -68,7 +68,7 @@ const handleSelect = (team) => {
     "playerType": ptype[type]
   };
 
-  axios.post("http://localhost:8080/purchase", order)
+  axios.post(`${import.meta.env.VITE_API_BASE}/purchase`, order)
     .then((res) => {
       console.log("Purchase successful:", res.data);
       setSelected(null);
