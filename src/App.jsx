@@ -4,11 +4,12 @@ import PlayerSelect from "./PlayerSelect"
 import BatsmenStats from "./BatsmenStats.jsx"
 import BowlerStats from "./BowlerStats"
 import AllRounderStats from "./AllRounderStats"
+import Toast from "./Toast.jsx"
 
 
 function App() {
-  
-  
+
+
   const [pos, setPos] = useState(1)
   const [go, setGo] = useState(1)
   const [stats, setStats] = useState({})
@@ -17,6 +18,9 @@ function App() {
   const [type, setType] = useState("batsmen")
   const [price, setPrice] = useState(1000000000); // Fixed: set default value directly
   const [teamId, setTeamId] = useState(null)
+  const [purchaseToast, setPurchaseToast] = useState(false)
+  const [soldToast, setSoldToast] = useState(false)
+  const [refundToast, setRefundToast] = useState(false)
 
   useEffect(() => {
     axios.get(`http://localhost:8080/${type}/${pos}`)
@@ -57,29 +61,31 @@ function App() {
 
   const [isPurchasing, setIsPurchasing] = useState(false);
 
-const handleSelect = (team) => {
-  if (!team || isPurchasing) return;
+  const handleSelect = (team) => {
+    if (!team || isPurchasing) return;
 
-  setIsPurchasing(true);
-  const order = {
-    "playerId": pos,
-    "soldPrice": price,
-    "teamId": team,
-    "playerType": ptype[type]
+    setIsPurchasing(true);
+    const order = {
+      "playerId": pos,
+      "soldPrice": price,
+      "teamId": team,
+      "playerType": ptype[type]
+    };
+
+    axios.post("http://localhost:8080/purchase", order)
+      .then((res) => {
+        console.log("Purchase successful:", res.data);
+        setPurchaseToast(true)
+        // setSelected(null);
+      })
+      .catch((err) => {
+        console.error("Purchase failed:", err.response?.data || err.message);
+        setSoldToast(true)
+      })
+      .finally(() => {
+        setIsPurchasing(false);
+      });
   };
-
-  axios.post("http://localhost:8080/purchase", order)
-    .then((res) => {
-      console.log("Purchase successful:", res.data);
-      setSelected(null);
-    })
-    .catch((err) => {
-      console.error("Purchase failed:", err.response?.data || err.message);
-    })
-    .finally(() => {
-      setIsPurchasing(false);
-    });
-};
 
 
   function formatToCrores(num) {
@@ -96,6 +102,16 @@ const handleSelect = (team) => {
 
   return (
     <>
+      {purchaseToast && (
+        <Toast color="green" message="Player purchased" onClose={() => setPurchaseToast(false)} />
+      )}
+      {refundToast && (
+        <Toast color="green" message="Refund Successfull" onClose={() => setRefundToast(false)} />
+      )}
+      {soldToast && (
+        <Toast color="red" message="Player Already SOld" onClose={() => setSoldToast(false)} />
+      )}
+
       <div className="overflow-hidden p-10 h-screen bg-gradient-to-br from-[#0D0C1C] to-[#131931] text-white relative">
         <nav className="justify-center items-center absolute left-[40%] top-10 z-10 flex gap-5 bg-[#191934]  rounded-full px-10 font-inter font-semibold" >
           <div className="cursor-pointer group py-3">
@@ -104,14 +120,17 @@ const handleSelect = (team) => {
               <div className="hover:text-gray-400" onClick={() => {
                 setType('batsmen')
                 setPos(1)
+                setSelected(null)
               }}>Batsmen</div>
               <div className="hover:text-gray-400" onClick={() => {
                 setType('bowlers')
                 setPos(1)
+                setSelected(null)
               }}>Bowlers</div>
               <div className="hover:text-gray-400" onClick={() => {
                 setType('all_rounders')
                 setPos(1)
+                setSelected(null)
               }}>All Rounders</div>
             </div>
           </div>
@@ -158,11 +177,30 @@ const handleSelect = (team) => {
                 Next &rarr;
               </button>
             </div>
-            <div className="absolute z-10 top-0 right-[-20px] group">
-              <button className="bg-[#2B2C5C] px-3 py-2 rounded-md m-3 hover:bg-[#2B2C5C]/80 transition-all duration-300 cursor-pointer" onClick={() => { setPos(Number(go)) }}> {/* Fixed: ensure go is converted to number */}
-                Go
+            <div className="absolute z-10 top-0 right-[-20px]">
+              <div className="group">
+                <button className="bg-[#2B2C5C] px-3 py-2 rounded-md m-3 hover:bg-[#2B2C5C]/80 transition-all duration-300 cursor-pointer" onClick={() => { setPos(Number(go)) }}> {/* Fixed: ensure go is converted to number */}
+                  Go
+                </button>
+                <input className="bg-[#2B2C5C] w-14 outline-none hidden group-hover:inline absolute top-13 left-0  text-white ml-3 text-sm h-8 p-3" placeholder="Pos" value={go} onChange={(e) => setGo(Number(e.target.value) || 1)} type="number" /> {/* Fixed: handle invalid input */}
+
+
+              </div>
+              <button
+                className=" cursor-pointer bg-red-500 text-white px-4 py-2 rounded-full text-base hover:bg-red-600 transition"
+                onClick={() => {
+                  if (stats.id && type) {
+                    axios.post(`http://localhost:8080/purchase/refund/${ptype[type]}/${stats.id}`)
+                      .then((res) => console.log("Refunded", res))
+                      .catch((err) => console.error("Refund failed", err.response?.data));
+                  }
+                  setRefundToast(true)
+                  setSelected(null)
+
+                }}
+              >
+                Refund
               </button>
-              <input className="bg-[#2B2C5C] w-14 outline-none hidden group-hover:inline absolute top-13 left-0  text-white ml-3 text-sm h-8 p-3" placeholder="Pos" value={go} onChange={(e) => setGo(Number(e.target.value) || 1)} type="number" /> {/* Fixed: handle invalid input */}
             </div>
 
           </div>

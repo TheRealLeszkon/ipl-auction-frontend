@@ -76,22 +76,26 @@ const iplTeams = [
 export default function PlayerSelect({ onSelect, selected, setSelected, setTeamId }) {
 
   function toggle(teamName, teamShortCode) {
-  setSelected((prev) => {
-    const next = prev === teamName ? null : teamName;
+    setSelected((prev) => {
+      const next = prev === teamName ? null : teamName;
 
-    if (next === null) {
-      setTeamId(null);
-      return null;
-    } else {
-      // Call this after state updates to avoid duplicate firing
-      setTimeout(() => {
-        onSelect(teamShortCode);
-        setTeamId(teamShortCode);
-      }, 0);
-      return teamName;
-    }
-  });
-}
+      if (next === null) {
+        setTeamId(null);
+        return null;
+      } else {
+        // Call this after state updates to avoid duplicate firing
+        setTimeout(() => {
+          onSelect(teamShortCode);
+          setTeamId(teamShortCode);
+        }, 0);
+        return teamName;
+      }
+    });
+  }
+
+  function undo() {
+    setSelected()
+  }
 
   return (
     <div className="flex-col font-semibold bg-gradient-to-br from-[#181832] to-[#212147] rounded-2xl p-15 scale-90 shadow-2xl">
